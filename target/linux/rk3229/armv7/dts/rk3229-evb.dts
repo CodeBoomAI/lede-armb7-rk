@@ -1,0 +1,64 @@
+/dts-v1/;
+#include "rk3229.dtsi"
+
+/ {
+    model = "RK3229 EVB Board";
+    compatible = "rockchip,rk3229-evb", "rockchip,rk3229";
+
+    aliases {
+        serial0 = &uart0;
+    };
+
+    chosen {
+        stdout-path = "serial0:115200n8";
+    };
+
+    memory {
+        device_type = "memory";
+        reg = <0x60000000 0x20000000>; /* 512MB */
+    };
+
+    fragment@0 {
+        target = <&usbphy>;
+        __overlay__ {
+            status = "okay";
+        };
+    };
+
+    fragment@1 {
+        target = <&gmac>;
+        __overlay__ {
+            status = "okay";
+            phy = <&rgmii PHY_HANDLE>;
+            phy-mode = "rgmii";
+        };
+    };
+
+    leds {
+        compatible = "gpio-leds";
+
+        power {
+            label = "red:power";
+            gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+        };
+
+        heartbeat {
+            label = "green:heartbeat";
+            gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+        };
+    };
+};
+
+&uart0 {
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart0_xfer>;
+};
+
+&pwm {
+    status = "disabled";
+};
+
+&wdt {
+    status = "disabled";
+};
