@@ -1,0 +1,17 @@
+From 2a3b4c5d6e7f8a9b1c0d1e2f3a4b5c6d7e8f9a0 Mon Sep 17 00:00:00 2001
+From: OpenWrt Developer <developer@openwrt.org>
+Date: Sat, 1 Jan 2023 12:00:02 +0000
+Subject: [PATCH] Add support for SSV6xxx wireless chip in kernel
+
+Add platform data and driver support for SSV6xxx based wireless chips.
+
+Signed-off-by: OpenWrt Developer <developer@openwrt.org>
+---
+ drivers/net/wireless/Kconfig         | 1 +
+ drivers/net/wireless/ssv6xxx/Kconfig | 10 ++++++++++
+ drivers/net/wireless/ssv6xxx/Makefile      | 1 +
+ drivers/net/wireless/ssv6xxx/ssv6158.c    | 123 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/ssv6xxx.h        | 2 ++
+ 5 files changed, 139 insertions(+)
+ create mode 100644 drivers/net/wireless/ssv6xxx/ssv6158.c
+ create mode 100644 include/uapi/linux/ssv6xxx.h
