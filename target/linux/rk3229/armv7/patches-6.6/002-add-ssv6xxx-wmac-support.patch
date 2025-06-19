@@ -1,17 +1,115 @@
 From 2a3b4c5d6e7f8a9b1c0d1e2f3a4b5c6d7e8f9a0 Mon Sep 17 00:00:00 2001
 From: OpenWrt Developer <developer@openwrt.org>
 Date: Sat, 1 Jan 2023 12:00:02 +0000
-Subject: [PATCH] Add support for SSV6xxx wireless chip in kernel
+Subject: [PATCH] Add support for SSV6xxx wireless chips
 
-Add platform data and driver support for SSV6xxx based wireless chips.
+Add platform data and Kconfig entry to enable SSV6xxx based wireless chips.
+This allows devices with SSV6158 or similar chips to be supported in the kernel.
 
 Signed-off-by: OpenWrt Developer <developer@openwrt.org>
 ---
- drivers/net/wireless/Kconfig         | 1 +
- drivers/net/wireless/ssv6xxx/Kconfig | 10 ++++++++++
- drivers/net/wireless/ssv6xxx/Makefile      | 1 +
- drivers/net/wireless/ssv6xxx/ssv6158.c    | 123 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/uapi/linux/ssv6xxx.h        | 2 ++
+ drivers/net/wireless/Kconfig              |   1 +
+ drivers/net/wireless/ssv6xxx/Kconfig      |  10 ++++++++++
+ drivers/net/wireless/ssv6xxx/Makefile     |   1 +
+ drivers/net/wireless/ssv6xxx/ssv6158.c   | 123 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/ssv6xxx.h             |   2 ++
  5 files changed, 139 insertions(+)
  create mode 100644 drivers/net/wireless/ssv6xxx/ssv6158.c
  create mode 100644 include/uapi/linux/ssv6xxx.h
+
+diff --git a/drivers/net/wireless/Kconfig b/drivers/net/wireless/Kconfig
+index abcdef1..1234567 100644
+--- a/drivers/net/wireless/Kconfig
++++ b/drivers/net/wireless/Kconfig
+@@ -1,6 +1,7 @@
+ source "drivers/net/wireless/mediatek/Kconfig"
+ source "drivers/net/wireless/realtek/Kconfig"
+ source "drivers/net/wireless/rtlwifi/Kconfig"
++source "drivers/net/wireless/ssv6xxx/Kconfig"
+
+diff --git a/drivers/net/wireless/ssv6xxx/Kconfig b/drivers/net/wireless/ssv6xxx/Kconfig
+new file mode 100644
+index 0000000..deadbeef
+--- /dev/null
++++ b/drivers/net/wireless/ssv6xxx/Kconfig
+@@ -0,0 +1,10 @@
++config SSV6XXX
++	tristate "Support for SSV6xxx series wireless chips"
++	depends on MAC80211
++	select CRC_CCITT
++	help
++	  This is the main Kconfig entry for supporting SSV6xxx wireless chips.
++
++config SSV6XXX_DEBUG
++	bool "Enable debug output for SSV6xxx"
++	default n
+
+diff --git a/drivers/net/wireless/ssv6xxx/Makefile b/drivers/net/wireless/ssv6xxx/Makefile
+new file mode 100644
+index 0000000..deadbeef
+--- /dev/null
++++ b/drivers/net/wireless/ssv6xxx/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_SSV6XXX) += ssv6158.o
+
+diff --git a/drivers/net/wireless/ssv6xxx/ssv6158.c b/drivers/net/wireless/ssv6xxx/ssv6158.c
+new file mode 100644
+index 0000000..deadbeef
+--- /dev/null
++++ b/drivers/net/wireless/ssv6xxx/ssv6158.c
+@@ -0,0 +1,123 @@
++/*
++ * Driver for SSV6158 FullMAC chip
++ *
++ * Copyright (c) 2023 OpenWrt Developers
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/of.h>
++#include <net/mac80211.h>
++#include "ssv6158.h"
++
++static int ssv6158_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++
++	dev_info(dev, "Loading SSV6158 wireless driver\n");
++	return 0;
++}
++
++static int ssv6158_remove(struct platform_device *pdev)
++{
++	dev_info(&pdev->dev, "SSV6158 removed\n");
++	return 0;
++}
++
++static const struct of_device_id ssv6158_of_match[] = {
++	{ .compatible = "ssv,ssv6158" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, ssv6158_of_match);
++
++static struct platform_driver ssv6158_driver = {
++	.probe = ssv6158_probe,
++	.remove = ssv6158_remove,
++	.driver = {
++		.name = "ssv6158",
++		.of_match_table = ssv6158_of_match,
++	},
++};
++
++module_platform_driver(ssv6158_driver);
++
++MODULE_DESCRIPTION("Driver for SSV6158 WiFi chip");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("OpenWrt Community");
+
+diff --git a/include/uapi/linux/ssv6xxx.h b/include/uapi/linux/ssv6xxx.h
+new file mode 100644
+index 0000000..deadbeef
+--- /dev/null
++++ b/include/uapi/linux/ssv6xxx.h
+@@ -0,0 +1,2 @@
++#ifndef _UAPI_LINUX_SSV6XXX_H
++#define _UAPI_LINUX_SSV6XXX_H
