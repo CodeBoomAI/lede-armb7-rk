@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 name: Build RK3229 OpenWrt Firmware
 
 on:
@@ -12,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CONFIG_URL: "https://raw.githubusercontent.com/CodeBoomAI/lede-armb7-rk/hk1mini/Rk3229-box.config" 
-      TARGET_PROFILE: "rk3229-evb"
+      TARGET_PROFILE: "rk3229-hk1mini"
 
     steps:
       - name: Checkout Repository
@@ -20,6 +22,8 @@ jobs:
 
       - name: Setup Basic Environment
         run: |
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php || true
+          sudo apt-get purge -y azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* snap* || true
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential libncurses5-dev flex bison libssl-dev python3 python3-pip rsync unzip zip \
@@ -37,19 +41,51 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Download and Apply Config
+      - name: Download and Apply .config
         working-directory: ./openwrt
         run: |
           echo "📥 Mengunduh Rk3229-box.config..."
           curl -sL "$CONFIG_URL" -o .config
-          
+
           echo "🔧 Memperbaiki konfigurasi target..."
           echo "CONFIG_TARGET_rk3229=y" >> .config
           echo "CONFIG_TARGET_rk3229_armv7=y" >> .config
           echo "CONFIG_TARGET_rk3229_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
           echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
+          echo "CONFIG_LINUX_6_6=y" >> .config
 
           make defconfig
+
+      - name: 🔍 Validasi Target Build
+        id: validate_config
+        continue-on-error: true
+        working-directory: ./openwrt
+        run: |
+          echo "🔍 Memvalidasi apakah .config sudah benar untuk RK3229 ARMv7..."
+
+          # Cek apakah target rk3229 & armv7 aktif
+          if grep -q 'CONFIG_TARGET_rk3229=y' .config && \
+             grep -q 'CONFIG_TARGET_rk3229_armv7=y' .config && \
+             grep -q "CONFIG_TARGET_rk3229_armv7_DEVICE_${TARGET_PROFILE}=y" .config; then
+            echo "✅ Target config valid: rk3229/armv7/${TARGET_PROFILE}"
+            exit 0
+          else
+            echo "❌ Target config salah!"
+            echo "Harus memiliki:"
+            echo "  CONFIG_TARGET_rk3229=y"
+            echo "  CONFIG_TARGET_rk3229_armv7=y"
+            echo "  CONFIG_TARGET_rk3229_armv7_DEVICE_rk3229-evb=y"
+            echo ""
+            echo "Isi .config saat ini:"
+            cat .config | grep CONFIG_TARGET_
+            exit 1
+          fi
+
+      - name: Stop Workflow Jika Salah Target
+        if: steps.validate_config.exit_code != 0
+        run: |
+          echo "🛑 Build dibatalkan karena .config salah target."
+          exit 1
 
       - name: Download Packages
         working-directory: ./openwrt
@@ -64,6 +100,9 @@ jobs:
         run: |
           echo "🛠️ Mulai build firmware untuk RK3229 (ARMv7)"
           make -j$(nproc) V=s 2>&1 | tee ../build.log
+
+          echo "🔍 Mencari file firmware hasil build..."
+          find ./bin/targets/rk3229/armv7/ -type f -name "*.img" -o -name "*.tar.gz" || true
 
       - name: Check Build Status
         id: check_build
