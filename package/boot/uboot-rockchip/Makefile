@@ -30,6 +30,13 @@ define U-Boot/rk3229/Default
   USE_RKBIN:=1
 endef
 
+define U-Boot/generic-rk3229
+  $(U-Boot/rk3229/Default)
+  NAME:=Generic RK3229
+  BUILD_DEVICES:= \
+    rockchip_rk3229_generic
+endef
+
 # RK3328 boards
 
 define U-Boot/rk3328/Default
@@ -429,6 +436,7 @@ endef
 
 UBOOT_TARGETS := \
   rk3229 \
+  generic-rk3229 \ 
   generic-rk3528 \
   radxa-e20c-rk3528 \
   nanopi-r3s-rk3566 \
