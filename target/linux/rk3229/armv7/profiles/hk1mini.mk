@@ -6,30 +6,21 @@ define Profile/hk1mini
     luci \
     luci-theme-bootstrap \
     luci-app-firewall \
-    luci-proto-ipv6 \
-    luci-proto-ppp \
     kmod-button-hotplug \
     kmod-leds-gpio \
-    kmod-usb-core kmod-usb2 \
+    kmod-usb-core \
+    kmod-usb2 \
     opkg \
-    htop coremark curl \
-    vim-fulltiny dropbear \
-    busybox bash \
-    network network-monitor \
+    busybox dropbear \
+    htop coremark vim-fulltiny \
     dnsmasq firewall4 \
     ppp ppp-mod-pppoe \
-    wpad-basic hostapd-common \
     iw iwgetid iwinfo \
-    mtd-utils fwtool \
-    block-mount \
-    kmod-fs-ext4 kmod-fs-vfat \
-    kmod-scsi-core kmod-usb-storage \
-    openssh-sftp-server
+    kmod-mac80211
 endef
 
 define Profile/hk1mini/Description
-    Firmware for HK1 Mini TV Box with Rockchip RK3229, 2GB RAM, 16GB eMMC.
-    Supports WiFi via SSV6xxx, Ethernet, USB, and SD card.
+    Firmware untuk HK1 Mini dengan SoC Rockchip RK3229
 endef
 
 $(eval $(call Profile,hk1mini))
