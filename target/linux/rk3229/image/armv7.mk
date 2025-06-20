@@ -2,8 +2,10 @@
 # Copyright (C) 2023 OpenWrt.org
 #
 
+include $(TOPDIR)/rules.mk
+
 define Image/BuildKernel
-    $(call Image/Build/CpImage,$(KDIR)/zImage, kernel)
+    $(call Image/Build/CpImage,$(KDIR)/Image, kernel)
     $(call Image/Build/CpImage,$(KDIR)/$(DEVICE_DTS).dtb, dtb)
 endef
 
@@ -21,5 +23,4 @@ define Image/Build
     $(call Image/Build/$(1),$(device_name))
 endef
 
-# Tambahkan support untuk board tertentu
 $(eval $(call BuildImage))
