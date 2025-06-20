@@ -35,6 +35,13 @@ define Build/rkbin/Target
   endef
 endef
 
+define rkbin/rk3229
+  DEPENDS:=@TARGET_rockchip_armv7
+  ATF:=rk32/rk322xh_bl31_v1.49.elf
+  TPL:=rk32/rk3329_ddr_333MHz_v1.19.bin
+  SPL:=rk32/rk322xh_miniloader_v2.50.bin
+endef
+
 define rkbin/rk3328
   DEPENDS:=@TARGET_rockchip_armv8
   ATF:=rk33/rk322xh_bl31_v1.49.elf
@@ -80,6 +87,7 @@ define rkbin/rk3588
 endef
 
 VARIANTS:= \
+        rk3229 \
 	rk3328 \
 	rk3399 \
 	rk3528 \
