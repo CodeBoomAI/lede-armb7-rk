@@ -8,7 +8,7 @@ CPU_SUBTYPE:=vfpv3
 KERNELNAME:=Image dtbs
 
 define Target/Description
-    Build images for HK1 Mini TV Box (RK3229 ARMv7)
+    Build images for Rockchip RK3229-based boards (EVB, Firefly, dll.)
 endef
 
 include $(INCLUDE_DIR)/target.mk
