@@ -52,23 +52,20 @@ jobs:
           echo "CONFIG_TARGET_rk3229_armv7=y" >> .config
           echo "CONFIG_TARGET_rk3229_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
           echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
-          echo "CONFIG_LINUX_6_6=y" >> .config
 
           make defconfig
 
       - name: 🔍 Validasi Target Build
         id: validate_config
-        continue-on-error: true
+        continue-on-error: false
         working-directory: ./openwrt
         run: |
           echo "🔍 Memvalidasi apakah .config sudah benar untuk RK3229 ARMv7..."
 
-          # Cek apakah target rk3229 & armv7 aktif
           if grep -q 'CONFIG_TARGET_rk3229=y' .config && \
              grep -q 'CONFIG_TARGET_rk3229_armv7=y' .config && \
              grep -q "CONFIG_TARGET_rk3229_armv7_DEVICE_${TARGET_PROFILE}=y" .config; then
             echo "✅ Target config valid: rk3229/armv7/${TARGET_PROFILE}"
-            exit 0
           else
             echo "❌ Target config salah!"
             echo "Harus memiliki:"
@@ -82,7 +79,7 @@ jobs:
           fi
 
       - name: Stop Workflow Jika Salah Target
-        if: steps.validate_config.exit_code != 0
+        if: failure() || steps.validate_config.outputs.status == 'failed'
         run: |
           echo "🛑 Build dibatalkan karena .config salah target."
           exit 1
@@ -101,12 +98,13 @@ jobs:
           echo "🛠️ Mulai build firmware untuk RK3229 (ARMv7)"
           make -j$(nproc) V=s 2>&1 | tee ../build.log
 
-          echo "🔍 Mencari file firmware hasil build..."
-          find ./bin/targets/rk3229/armv7/ -type f -name "*.img" -o -name "*.tar.gz" || true
+          echo "🔍 Mencari file firmware di output..."
+          find ./bin/targets/rk3229/armv7/ -type f -name "*.*" || true
 
       - name: Check Build Status
         id: check_build
         shell: bash
+        working-directory: ./openwrt
         run: |
           if grep -q 'make[1-9][0-9]*: ***' ../build.log; then
             echo "::set-output name=status::failed"
