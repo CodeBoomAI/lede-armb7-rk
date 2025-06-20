@@ -1,0 +1,19 @@
+--- /dev/null
++++ b/arch/arm/boot/dts/rockchip/rk3229-generic.dts
+@@ ... @@
++/dts-v1/;
++#include "rk3229.dtsi"
++
++/ {
++    model = "Rockchip RK3229 Generic Board";
++    compatible = "rockchip,rk3229-generic", "rockchip,rk3229";
++
++    memory@60000000 {
++        device_type = "memory";
++        reg = <0x60000000 0x40000000>; /* 1GB RAM, sesuaikan jika perlu */
++    };
++
++    chosen {
++        bootargs = "console=ttyS2,115200";
++    };
++};
