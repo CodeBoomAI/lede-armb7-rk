@@ -1,6 +1,4 @@
-# SPDX-License-Identifier: MIT
-
-name: Build RK3229 OpenWrt Firmware (hk1mini)
+name: Build RK3229 OpenWrt Firmware
 
 on:
   workflow_dispatch:
@@ -22,8 +20,6 @@ jobs:
 
       - name: Setup Basic Environment
         run: |
-          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php || true
-          sudo apt-get purge -y azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* snap* || true
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential libncurses5-dev flex bison libssl-dev python3 python3-pip rsync unzip zip \
@@ -46,11 +42,11 @@ jobs:
         run: |
           echo "📥 Mengunduh Rk3229-box.config..."
           curl -sL "$CONFIG_URL" -o .config
-          
+
           echo "🔧 Memperbaiki konfigurasi target..."
           echo "CONFIG_TARGET_rockchip=y" >> .config
           echo "CONFIG_TARGET_rockchip_armv7=y" >> .config
-          echo "CONFIG_TARGET_rockchip_armv7_DEVICE_rk3229-evb=y" >> .config
+          echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
           echo "CONFIG_TARGET_rockchip_armv8=n" >> .config
           echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
 
@@ -69,9 +65,6 @@ jobs:
         run: |
           echo "🛠️ Mulai build firmware untuk RK3229 (ARMv7)"
           make -j$(nproc) V=s 2>&1 | tee ../build.log
-
-          echo "🔍 Mencari file hasil build..."
-          find ./bin/targets/rockchip/armv7/ -type f -name "*.img" -o -name "*.tar.gz" || true
 
       - name: Check Build Status
         id: check_build
