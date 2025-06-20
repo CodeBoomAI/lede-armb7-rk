@@ -21,6 +21,14 @@ define U-Boot/Default
   HIDDEN:=1
 endef
 
+# RK3229 boards
+
+define U-Boot/rk3229/Default
+  BUILD_SUBTARGET:=armv7
+  DEPENDS:=+PACKAGE_u-boot-$(1):rkbin-rk3229
+  ATF:=rk322xh_bl31_v1.49.elf
+  USE_RKBIN:=1
+endef
 
 # RK3328 boards
 
@@ -420,6 +428,7 @@ define U-Boot/rock5a-rk3588s
 endef
 
 UBOOT_TARGETS := \
+  rk3229 \
   generic-rk3528 \
   radxa-e20c-rk3528 \
   nanopi-r3s-rk3566 \
