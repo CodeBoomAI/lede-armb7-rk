@@ -1,7 +1,3 @@
-#
-# Copyright (C) 2023 OpenWrt.org
-#
-
 define Image/BuildKernel
     $(call Image/Build/CpImage,$(KDIR)/Image, kernel)
     $(call Image/Build/CpImage,$(KDIR)/$(DEVICE_DTS).dtb, dtb)
