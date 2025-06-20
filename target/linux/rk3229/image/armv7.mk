@@ -1,26 +1,8 @@
-#
-# Copyright (C) 2023 OpenWrt.org
-#
-
-include $(TOPDIR)/rules.mk
-
-define Image/BuildKernel
-    $(call Image/Build/CpImage,$(KDIR)/Image, kernel)
-    $(call Image/Build/CpImage,$(KDIR)/$(DEVICE_DTS).dtb, dtb)
+define Device/hk1mini
+  DEVICE_VENDOR := HK1
+  DEVICE_MODEL := Mini
+  DEVICE_DTS := rk3229-hk1mini
+  IMAGES := sysupgrade.img.gz
+  IMAGE/sysupgrade.img.gz := append-kernel | pad-to 2M | append-rootfs | pad-rootfs | gzip
 endef
-
-define Image/BuildDeviceTree
-    $(call Image/Build/CpDTB,$(DEVICE_DTS))
-endef
-
-define Image/Build/squashfs
-    $(call Build/append-metadata)
-    $(call Image/Build/squashfs-ube)
-    $(call Image/Build/join-rootfs)
-endef
-
-define Image/Build
-    $(call Image/Build/$(1),$(device_name))
-endef
-
-$(eval $(call BuildImage))
+TARGET_DEVICES += hk1mini
