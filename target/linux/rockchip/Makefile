@@ -14,10 +14,9 @@ define Target/Description
 	Build firmware image for Rockchip SoC devices.
 endef
 
-# Subtarget khusus ARMv7 (umum)
 define Target/armv7
-  NAME:=Generic ARMv7 (Cortex-A7)
-  BOARDNAME:=Generic ARMv7
+  NAME:=Rockchip ARMv7 (Cortex-A7)
+  BOARDNAME:=Rockchip ARMv7
   CPU_TYPE:=cortex-a7
   CPU_SUBTYPE:=vfpv4
   FEATURES:=fpu
