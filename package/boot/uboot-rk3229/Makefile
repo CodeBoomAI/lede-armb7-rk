@@ -2,18 +2,14 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=u-boot
 UBOOT_REPO:=https://source.denx.de/u-boot/u-boot.git 
-UBOOT_COMMIT:=v2023.02
+UBOOT_COMMIT:=v2023.04
 UBOOT_RELEASE:=1
 
 define Package/u-boot-rk3229
   SECTION:=boot
   CATEGORY:=Boot loaders
-  TITLE:=U-Boot for Rockchip RK3229
+  TITLE:=U-Boot for Rockchip RK3229 based boards
   URL:=https://www.denx.de/wiki/U-Boot 
-endef
-
-define Package/u-boot-rk3229/description
-  This package contains U-Boot bootloader for Rockchip RK3229 based boards.
 endef
 
 define Build/Prepare
