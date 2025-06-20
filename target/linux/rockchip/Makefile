@@ -20,7 +20,7 @@ define Target/armv7
   CPU_TYPE:=cortex-a7
   CPU_SUBTYPE:=vfpv4
   FEATURES:=fpu
-  KERNEL_PATCHVER:=5.10
+  KERNEL_PATCHVER:=6.6
 endef
 
 include $(INCLUDE_DIR)/target.mk
