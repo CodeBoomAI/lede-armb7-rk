@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 name: Build RK3229 OpenWrt Firmware
 
 on:
@@ -20,6 +22,8 @@ jobs:
 
       - name: Setup Basic Environment
         run: |
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php || true
+          sudo apt-get purge -y azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* snap* || true
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential libncurses5-dev flex bison libssl-dev python3 python3-pip rsync unzip zip \
@@ -65,6 +69,9 @@ jobs:
         run: |
           echo "🛠️ Mulai build firmware untuk RK3229 (ARMv7)"
           make -j$(nproc) V=s 2>&1 | tee ../build.log
+
+          echo "🔍 Mencari file firmware hasil build..."
+          find ./bin/targets/rockchip/armv7/ -type f -name "*.img" -o -name "*.tar.gz" || true
 
       - name: Check Build Status
         id: check_build
