@@ -1,10 +1,8 @@
-define Device/rockchip_rk3229_hk1mini
-  DEVICE_VENDOR := Rockchip
-  DEVICE_MODEL := HK1 Mini
+define Device/generic-rk3229
+  DEVICE_TITLE := Generic RK3229 Board
   SOC := rk3229
-  DEVICE_DTS := rk3229-hk1mini
-  IMAGE_SIZE := 32m
+  DEVICE_DTS := rk3229-evb
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-dwc2 kmod-usb-storage
+  IMAGE_SIZE := 16064k
 endef
-TARGET_DEVICES += rockchip_rk3229_hk1mini
-
-# Tambahkan device RK3229 lain jika perlu
+TARGET_DEVICES += generic-rk3229
