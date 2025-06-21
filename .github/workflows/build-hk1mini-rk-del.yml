@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 
-name: Build RK3229 OpenWrt Firmware
+name: Build RK3229 OpenWrt FirmwarebRk-del
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - hk1mini
+      - rk-del
 
 jobs:
   build_openwrt:
