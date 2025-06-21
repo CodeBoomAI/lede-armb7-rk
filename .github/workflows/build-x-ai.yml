@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         device: [hk1mini]
-        # Tambahkan device lain jika perlu
+        # Tambahkan device lain jika perlu, misal: [hk1mini, generic-rk3229]
 
     steps:
       - name: Checkout code
@@ -55,7 +55,8 @@ jobs:
 
       - name: Set target device config
         run: |
-          echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${{ matrix.device }}=y" > .config
+          echo "CONFIG_TARGET_rockchip_armv7=y" > .config
+          echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${{ matrix.device }}=y" >> .config
           make defconfig
 
       - name: Cek target RK3229, bukan x86
