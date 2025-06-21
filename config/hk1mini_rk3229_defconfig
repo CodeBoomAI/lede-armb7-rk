@@ -1,0 +1,12 @@
+CONFIG_TARGET_rockchip_armv7=y
+CONFIG_TARGET_rockchip_armv7_DEVICE_HK1MINI=y
+
+# Tambahan paket opsional:
+CONFIG_PACKAGE_luci=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-leds-gpio=y
+CONFIG_PACKAGE_kmod-rtc-sysfs=y
