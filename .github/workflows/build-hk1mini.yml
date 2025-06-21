@@ -1,16 +1,19 @@
+# SPDX-License-Identifier: MIT
+
 name: Build RK3229 OpenWrt Firmware
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - hk1mini
-  workflow_dispatch:
 
 jobs:
   build_openwrt:
     name: Build OpenWrt for HK1 Mini Box (RK3229 ARMv7)
     runs-on: ubuntu-latest
     env:
+      CONFIG_URL: "https://raw.githubusercontent.com/CodeBoomAI/lede-armb7-rk/hk1mini/Rk3229-box.config" 
       TARGET_PROFILE: "rk3229-evb"
 
     steps:
@@ -19,7 +22,10 @@ jobs:
 
       - name: Setup Basic Environment
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php || true
+          sudo apt-get purge -y azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* snap* || true
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
             build-essential libncurses5-dev flex bison libssl-dev python3 python3-pip rsync unzip zip \
             git wget curl bc kmod patch make gcc g++ zlib1g-dev libzstd-dev \
             libncurses5-dev libreadline-dev libssl-dev libelf-dev liblzma-dev \
@@ -39,14 +45,21 @@ jobs:
         working-directory: ./openwrt
         run: |
           echo "📥 Mengunduh Rk3229-box.config..."
-          curl -sL https://raw.githubusercontent.com/CodeBoomAI/lede-armb7-rk/hk1mini/Rk3229-box.config  -o .config
+          curl -sL "$CONFIG_URL" -o .config
 
-          echo "🔧 Memperbaiki konfigurasi target..."
+          echo "🔧 Membersihkan konfigurasi lama..."
           sed -i '/CONFIG_TARGET_/d' .config
+          sed -i '/CONFIG_TARGET_BOARD/d' .config
+          sed -i '/CONFIG_TARGET_SUBTARGET/d' .config
+          sed -i '/CONFIG_TARGET_PROFILE/d' .config
+          sed -i '/CONFIG_TARGET_ARCH_PACKAGES/d' .config
+
+          echo "🔧 Menetapkan target RK3229 ARMv7..."
           echo "CONFIG_TARGET_rk3229=y" >> .config
           echo "CONFIG_TARGET_rk3229_armv7=y" >> .config
           echo "CONFIG_TARGET_rk3229_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
           echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
+          echo "CONFIG_LINUX_6_6=y" >> .config
 
           make defconfig
 
@@ -80,20 +93,21 @@ jobs:
           exit 1
 
       - name: Download Packages
-        if: success()
         working-directory: ./openwrt
         run: |
           echo "📦 Mengunduh semua paket..."
           make download -j$(nproc)
 
       - name: Build Firmware with Log Output
-        if: success()
         id: build_firmware
         continue-on-error: true
         working-directory: ./openwrt
         run: |
           echo "🛠️ Mulai build firmware untuk RK3229 (ARMv7)"
           make -j$(nproc) V=s 2>&1 | tee ../build.log
+
+          echo "🔍 Mencari file firmware hasil build..."
+          find ./bin/targets/rk3229/armv7/ -type f -name "*.img" -o -name "*.tar.gz" || true
 
       - name: Check Build Status
         id: check_build
@@ -108,7 +122,7 @@ jobs:
           fi
 
       - name: Prepare Artifact
-        if: success() && steps.check_build.outputs.status == 'success'
+        if: success()
         working-directory: ./openwrt
         run: |
           mkdir -p ../artifact
