@@ -5,7 +5,7 @@ include $(TOPDIR)/rules.mk
 BOARD:=rockchip
 BOARDNAME:=Rockchip
 FEATURES:=ext4 audio usb usbgadget display gpio fpu pci pcie rootfs-part boot-part squashfs
-SUBTARGETS:=armv8
+SUBTARGETS:=armv8 armv7
 
 KERNEL_PATCHVER:=6.12
 KERNEL_TESTING_PATCHVER:=6.6
@@ -20,5 +20,8 @@ DEFAULT_PACKAGES += uboot-envtools partx-utils e2fsprogs mkf2fs kmod-button-hotp
 		    automount autocore-arm e2fsprogs ethtool haveged htop usb-modeswitch
 
 KERNELNAME:=Image dtbs
+
+include $(SUBTARGET_DIR)/image/armv7.mk
+include $(SUBTARGET_DIR)/image/armv8.mk
 
 $(eval $(call BuildTarget))

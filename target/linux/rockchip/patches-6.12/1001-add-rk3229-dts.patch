@@ -1,0 +1,4 @@
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ ... @@
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3229-hk1mini.dtb

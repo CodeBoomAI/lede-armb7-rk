@@ -464,7 +464,8 @@ UBOOT_TARGETS := \
   nanopi-r2s-rk3328 \
   nanopi-r2s-plus-rk3328 \
   orangepi-r1-plus-rk3328 \
-  orangepi-r1-plus-lts-rk3328
+  orangepi-r1-plus-lts-rk3328 \
+  hk1mini-rk3229
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 
