@@ -22,6 +22,11 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev \
             file wget python3-pyelftools
 
+      - name: Generate .config for HK1Mini RK3229
+        run: |
+          cp configs/hk1mini_rk3229_defconfig .config
+          make defconfig
+
       - name: Check .config for armv7/rk3229
         run: |
           if ! grep -q 'CONFIG_TARGET_rockchip_armv7=y' .config; then
