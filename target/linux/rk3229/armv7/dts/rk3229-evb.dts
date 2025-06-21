@@ -5,13 +5,17 @@
     model = "RK3229 EVB Board";
     compatible = "rockchip,rk3229-evb", "rockchip,rk3229";
 
+    aliases {
+        serial0 = &uart0;
+    };
+
     chosen {
         stdout-path = "serial0:115200n8";
     };
 
     memory {
         device_type = "memory";
-        reg = <0x60000000 0x2000000>; /* 512MB RAM */
+        reg = <0x60000000 0x20000000>; /* 512MB RAM */
     };
 
     fragment@0 {
@@ -49,4 +53,12 @@
     status = "okay";
     pinctrl-names = "default";
     pinctrl-0 = <&uart0_xfer>;
+};
+
+&pwm {
+    status = "disabled";
+};
+
+&wdt {
+    status = "disabled";
 };
