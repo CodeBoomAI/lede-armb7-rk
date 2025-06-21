@@ -1,12 +1,12 @@
 From 1a2b3c4d5e6f7890a1b2c3d4e5f6a7b8c9d0e1f Mon Sep 17 00:00:00 2001
-From: Qwen <qwen@openwrt.firmware.builders>
+From: OpenWrt Developer <developer@openwrt.org>
 Date: Sat, 1 Jan 2023 12:00:00 +0000
 Subject: [PATCH] Add support for RK3229-based boards
 
 Add initial DTS and defconfig support for Rockchip RK3229 based boards,
-including Firefly-RK3229 dan generic RK3229 EVB.
+including Firefly-RK3229 dan generic EVB.
 
-Signed-off-by: Qwen Developer <developer@openwrt.org>
+Signed-off-by: OpenWrt Developer <developer@openwrt.org>
 ---
  arch/arm/dts/Makefile                    |   1 +
  arch/arm/dts/rk3229-generic-u-boot.dts | 128 +++++++++++++++++++++++++++++++
