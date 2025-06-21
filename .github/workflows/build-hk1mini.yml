@@ -27,6 +27,9 @@ jobs:
           cp config/hk1mini_rk3229_defconfig .config
           make defconfig
 
+      - name: Show .config
+        run: cat .config 
+
       - name: Check .config for armv7/rk3229
         run: |
           if ! grep -q 'CONFIG_TARGET_rockchip_armv7=y' .config; then
