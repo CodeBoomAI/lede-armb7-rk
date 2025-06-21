@@ -24,7 +24,7 @@ jobs:
 
       - name: Generate .config for HK1Mini RK3229
         run: |
-          cp configs/hk1mini_rk3229_defconfig .config
+          cp config/hk1mini_rk3229_defconfig .config
           make defconfig
 
       - name: Check .config for armv7/rk3229
