@@ -1,10 +1,10 @@
-name: Build OpenWrt Rk3229
+name: Build OpenWrt
 
 on:
   workflow_dispatch:
     inputs:
       device:
-        description: 'Device to build (ex: hk1mini, generic-rk3229, dsb)'
+        description: 'Device to build (misal: hk1mini, generic-rk3229)'
         required: true
         default: 'hk1mini'
   push:
@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         device: [hk1mini]
-        # Tambahkan device lain jika perlu, misal: [hk1mini, generic-rk3229]
+        # Tambahkan device lain jika perlu
 
     steps:
       - name: Checkout code
@@ -57,6 +57,18 @@ jobs:
         run: |
           echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${{ matrix.device }}=y" > .config
           make defconfig
+
+      - name: Cek target RK3229, bukan x86
+        run: |
+          if grep -q 'CONFIG_TARGET_x86' .config; then
+            echo "Error: Target x86 terdeteksi di .config. Build dibatalkan."
+            exit 1
+          fi
+          if ! grep -q 'CONFIG_TARGET_rockchip_armv7_DEVICE_hk1mini=y' .config && \
+             ! grep -q 'CONFIG_TARGET_rockchip_armv7_DEVICE_generic-rk3229=y' .config; then
+            echo "Error: Target device bukan RK3229/hk1mini/generic-rk3229. Build dibatalkan."
+            exit 1
+          fi
 
       - name: Build OpenWrt
         run: |
