@@ -1,0 +1,57 @@
+/dts-v1/;
+
+#include "rk3229.dtsi"
+
+/ {
+    model = "HK1 Mini (RK3229)";
+    compatible = "hk1mini,rk3229", "rockchip,rk3229";
+
+    chosen {
+        bootargs = "console=ttyS2,115200n8 root=/dev/mmcblk0p2 rw rootwait";
+    };
+
+    memory@60000000 {
+        device_type = "memory";
+        reg = <0x60000000 0x40000000>; // 1GB RAM, sesuaikan jika berbeda
+    };
+
+    aliases {
+        serial0 = &uart2;
+    };
+
+    leds {
+        compatible = "gpio-leds";
+        status_led: status {
+            label = "hk1mini:blue:status";
+            gpios = <&gpio0 RK_PA0 GPIO_ACTIVE_HIGH>;
+            default-state = "on";
+        };
+    };
+};
+
+&uart2 {
+    status = "okay";
+};
+
+&mmc0 {
+    status = "okay";
+    bus-width = <4>;
+    cap-sd-highspeed;
+    disable-wp;
+};
+
+&usb_host0 {
+    status = "okay";
+};
+
+&usb_otg {
+    status = "okay";
+};
+
+&gmac {
+    status = "okay";
+    phy-mode = "rmii";
+    // phy-handle = <&phy0>; // Uncomment jika ada ethernet PHY
+};
+
+/* Tambahkan node lain sesuai hardware HK1Mini */

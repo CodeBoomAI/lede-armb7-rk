@@ -1,0 +1,103 @@
+#include "skeleton.dtsi"
+
+/ {
+    compatible = "rockchip,rk3229";
+    interrupt-parent = <&gic>;
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        cpu0: cpu@0 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a7";
+            reg = <0>;
+            clocks = <&cru ARMCLK>;
+            clock-latency = <1000>;
+            enable-method = "psci";
+        };
+        cpu1: cpu@1 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a7";
+            reg = <1>;
+            clocks = <&cru ARMCLK>;
+            clock-latency = <1000>;
+            enable-method = "psci";
+        };
+        cpu2: cpu@2 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a7";
+            reg = <2>;
+            clocks = <&cru ARMCLK>;
+            clock-latency = <1000>;
+            enable-method = "psci";
+        };
+        cpu3: cpu@3 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a7";
+            reg = <3>;
+            clocks = <&cru ARMCLK>;
+            clock-latency = <1000>;
+            enable-method = "psci";
+        };
+    };
+
+    gic: interrupt-controller@1013c000 {
+        compatible = "arm,cortex-a7-gic", "arm,gic-400";
+        #interrupt-cells = <3>;
+        interrupt-controller;
+        reg = <0x1013c000 0x1000>,
+              <0x10140000 0x2000>;
+    };
+
+    timer {
+        compatible = "arm,armv7-timer";
+        interrupts = <1 13 0xf08>,
+                     <1 14 0xf08>,
+                     <1 11 0xf08>,
+                     <1 10 0xf08>;
+    };
+};
+
+&uart2 {
+    compatible = "rockchip,rk3229-uart", "snps,dw-apb-uart";
+    reg = <0x11030000 0x100>;
+    interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
+    clocks = <&cru SCLK_UART2>, <&cru PCLK_UART2>;
+    clock-names = "baudclk", "apb_pclk";
+    status = "disabled";
+};
+
+&mmc0 {
+    compatible = "rockchip,rk3229-dw-mshc", "rockchip,rk3288-dw-mshc";
+    reg = <0x10214000 0x4000>;
+    interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
+    clocks = <&cru HCLK_SDMMC>, <&cru SCLK_SDMMC>;
+    clock-names = "biu", "ciu";
+    status = "disabled";
+};
+
+&usb_host0 {
+    compatible = "rockchip,rk3229-ehci", "generic-ehci";
+    reg = <0x10580000 0x10000>;
+    interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
+    status = "disabled";
+};
+
+&usb_otg {
+    compatible = "rockchip,rk3229-usb", "snps,dwc2";
+    reg = <0x105b0000 0x40000>;
+    interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
+    status = "disabled";
+};
+
+&gmac {
+    compatible = "rockchip,rk3229-gmac";
+    reg = <0x11010000 0x10000>;
+    interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL_HIGH>;
+    status = "disabled";
+};
+
+/* Tambahkan node lain sesuai kebutuhan SoC RK3229 */
