@@ -21,7 +21,7 @@ DEFAULT_PACKAGES += uboot-envtools partx-utils e2fsprogs mkf2fs kmod-button-hotp
 
 KERNELNAME:=Image dtbs
 
-include $(SUBTARGET_DIR)/image/armv7.mk
-include $(SUBTARGET_DIR)/image/armv8.mk
+# include $(SUBTARGET_DIR)/image/armv7.mk
+# include $(SUBTARGET_DIR)/image/armv8.mk
 
 $(eval $(call BuildTarget))
