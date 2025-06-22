@@ -3,12 +3,6 @@
 # Copyright (C) 2006-2007 OpenWrt.org
 
 include $(TOPDIR)/rules.mk
-
-BOARD:=rockchip
-BOARDNAME:=Rockchip
-SUBTARGETS:=armv8 armv7
-
-include $(TOPDIR)/target/linux/rockchip/Makefile
 include $(INCLUDE_DIR)/target.mk
 
 export TARGET_BUILD=1
