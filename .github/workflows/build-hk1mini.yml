@@ -1,58 +1,121 @@
-name: Build HK1Mini with SSH Debug
+name: Build Rockchip ARMv7 Firmware
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ hk1mini ]
+    branches:
+      - hk1mini
   pull_request:
-    branches: [ hk1mini ]
-  workflow_dispatch:   # Diperlukan untuk trigger manual
+    branches:
+      - hk1mini
 
 jobs:
-  build:
+  build_openwrt:
+    name: Build OpenWrt for RK3229 (ARMv7)
     runs-on: ubuntu-latest
-    timeout-minutes: 120  # Timeout keseluruhan job
+    env:
+      CONFIG_URL: "https://raw.githubusercontent.com/CodeBoomAI/lede-armb7-rk/hk1mini/Rk3229-box.config" 
+      TARGET_PROFILE: "rk3229-evb"
 
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Setup build environment
+      - name: Setup Basic Environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev \
-          libssl-dev libelf-dev bison flex dwarves zlib1g-dev \
-          git make gcc g++ python3 rsync
+          sudo apt update && sudo apt install -y --no-install-recommends \
+            build-essential libncurses5-dev flex bison libssl-dev python3 python3-pip rsync unzip zip \
+            git wget curl bc kmod patch make gcc g++ zlib1g-dev libzstd-dev \
+            libncurses5-dev libreadline-dev libssl-dev libelf-dev liblzma-dev \
+            libudev-dev libusb-1.0-0-dev libcurl4-openssl-dev
 
-      - name: Build kernel
+      - name: Clone Source Code
         run: |
-          export ARCH=arm
-          export CROSS_COMPILE=arm-linux-gnueabihf-
-          make hk1mini_defconfig
-          make -j$(nproc) bindeb-pkg
+          git clone --depth=1 --branch hk1mini https://github.com/CodeBoomAI/lede-armb7-rk  openwrt
 
-      # ===== SSH Debug Session =====
-      - name: Setup tmate debug session
-        id: tmate
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true  # Hanya user yang memicu bisa akses
-          timeout: 60  # Auto timeout setelah 60 menit (bisa disesuaikan)
-        if: ${{ failure() || github.event_name == 'workflow_dispatch' }}
+      - name: Update & Install Feeds
+        working-directory: ./openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
-      # ===== Upload Artifacts =====
-      - name: Upload kernel packages
-        if: ${{ success() }}
+      - name: Download and Apply Config
+        working-directory: ./openwrt
+        run: |
+          echo "📥 Mengunduh Rk3229-box.config..."
+          curl -sL "$CONFIG_URL" -o .config
+
+          echo "🔧 Membersihkan konfigurasi lama..."
+          sed -i '/CONFIG_TARGET_/d' .config
+          sed -i '/CONFIG_TARGET_BOARD/d' .config
+          sed -i '/CONFIG_TARGET_SUBTARGET/d' .config
+          sed -i '/CONFIG_TARGET_PROFILE/d' .config
+          sed -i '/CONFIG_TARGET_ARCH_PACKAGES/d' .config
+
+          echo "🔧 Menetapkan target Rockchip ARMv7..."
+          echo "CONFIG_TARGET_rockchip=y" >> .config
+          echo "CONFIG_TARGET_rockchip_armv7=y" >> .config
+          echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
+          echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
+          echo "CONFIG_LINUX_6_6=y" >> .config
+
+          make defconfig
+
+      - name: 🔍 Validasi Target Build
+        id: validate_config
+        continue-on-error: false
+        working-directory: ./openwrt
+        run: |
+          echo "🔍 Memvalidasi apakah .config sudah benar untuk RK3229 ARMv7..."
+
+          if grep -q 'CONFIG_TARGET_rockchip=y' .config && \
+             grep -q 'CONFIG_TARGET_rockchip_armv7=y' .config && \
+             grep -q "CONFIG_TARGET_rockchip_armv7_DEVICE_${TARGET_PROFILE}=y" .config; then
+            echo "✅ Target config valid: rockchip/armv7/${TARGET_PROFILE}"
+          else
+            echo "❌ Target config salah!"
+            echo "Harus memiliki:"
+            echo "  CONFIG_TARGET_rockchip=y"
+            echo "  CONFIG_TARGET_rockchip_armv7=y"
+            echo "  CONFIG_TARGET_rockchip_armv7_DEVICE_rk3229-evb=y"
+            echo ""
+            echo "Isi .config saat ini:"
+            cat .config | grep CONFIG_TARGET_
+            exit 1
+          fi
+
+      - name: Stop Build Jika Salah Target
+        if: failure()
+        run: |
+          echo "🛑 Build dibatalkan karena .config salah target."
+          exit 1
+
+      - name: Build Firmware
+        if: success()
+        working-directory: ./openwrt
+        run: |
+          make download -j$(nproc)
+          make V=s -j$(nproc)
+
+      - name: Upload Firmware
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-debs
-          path: ../*.deb
-          retention-days: 3
+          name: Rockchip_ARMv7_Firmware
+          path: ./openwrt/bin/targets/rockchip/armv7/*.img
 
-      # ===== Notifikasi =====
-      - name: Notify on failure
-        if: ${{ failure() }}
+      # ===== DEBUG SESSION =====
+      - name: Setup tmate debug session
+        id: tmate
+        if: ${{ failure() || github.event_name == 'workflow_dispatch' }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          timeout: 30  # Timeout 30 menit
+
+      # ===== NOTIFIKASI JIKA GAGAL DI PULL REQUEST =====
+      - name: Notify failure in PR
+        if: ${{ failure() && github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -60,5 +123,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🚨 Build failed! SSH Debug: ${{ steps.tmate.outputs.ssh }}'
+              body: '🚨 Build failed! \n\nAnda dapat melakukan debug via SSH dengan perintah berikut: \n```\n${{ steps.tmate.outputs.ssh }}\n```'
             })
