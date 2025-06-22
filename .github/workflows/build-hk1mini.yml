@@ -1,11 +1,8 @@
-name: Build Rockchip ARMv7 Firmware
+name: Build Rockchip ARMv7 Firmware with Menuconfig
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - hk1mini
-  pull_request:
     branches:
       - hk1mini
 
@@ -13,6 +10,7 @@ jobs:
   build_openwrt:
     name: Build OpenWrt for RK3229 (ARMv7)
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     env:
       CONFIG_URL: "https://raw.githubusercontent.com/CodeBoomAI/lede-armb7-rk/hk1mini/Rk3229-box.config" 
       TARGET_PROFILE: "rk3229-evb"
@@ -20,6 +18,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      # ===== SESI MENUCONFIG VIA SSH =====
+      - name: Setup tmate for Menuconfig
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: tmate_menuconfig
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          timeout: 120  # Waktu lebih panjang untuk konfigurasi manual
 
       - name: Setup Basic Environment
         run: |
@@ -39,25 +46,61 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      # ===== LANGKAH MENUCONFIG =====
+      - name: Prepare for Menuconfig
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        working-directory: ./openwrt
+        run: |
+          # Unduh config dasar jika ada
+          if [ -n "$CONFIG_URL" ]; then
+            curl -sL "$CONFIG_URL" -o .config
+          fi
+          
+          # Inisialisasi config jika belum ada
+          if [ ! -f .config ]; then
+            make defconfig
+          fi
+
+      # ===== INSTRUKSI MENUCONFIG =====
+      - name: Menuconfig Instructions
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.tmate_menuconfig.outputs.ssh }}
+        run: |
+          echo "================================================"
+          echo "🚀 UNTUK MENJALANKAN MENUCONFIG:"
+          echo "1. SSH ke runner: ${{ steps.tmate_menuconfig.outputs.ssh }}"
+          echo "2. Masuk ke direktori: cd openwrt"
+          echo "3. Jalankan: make menuconfig"
+          echo "4. Konfigurasi sesuai kebutuhan"
+          echo "5. Tekan 'Save' sebelum keluar"
+          echo "6. Keluar dari menuconfig (jangan exit SSH dulu)"
+          echo "7. Kembali ke workflow ini dan tekan ENTER"
+          echo "================================================"
+          read -p "Tekan ENTER setelah selesai menuconfig..." 
+        shell: bash
+
+      # ===== LANJUTKAN PROSES BUILD =====
       - name: Download and Apply Config
         working-directory: ./openwrt
         run: |
-          echo "📥 Mengunduh Rk3229-box.config..."
-          curl -sL "$CONFIG_URL" -o .config
+          # Hanya jalankan jika bukan trigger manual atau config belum diatur
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ ! -f .config ]; then
+            echo "📥 Mengunduh Rk3229-box.config..."
+            curl -sL "$CONFIG_URL" -o .config
 
-          echo "🔧 Membersihkan konfigurasi lama..."
-          sed -i '/CONFIG_TARGET_/d' .config
-          sed -i '/CONFIG_TARGET_BOARD/d' .config
-          sed -i '/CONFIG_TARGET_SUBTARGET/d' .config
-          sed -i '/CONFIG_TARGET_PROFILE/d' .config
-          sed -i '/CONFIG_TARGET_ARCH_PACKAGES/d' .config
+            echo "🔧 Membersihkan konfigurasi lama..."
+            sed -i '/CONFIG_TARGET_/d' .config
+            sed -i '/CONFIG_TARGET_BOARD/d' .config
+            sed -i '/CONFIG_TARGET_SUBTARGET/d' .config
+            sed -i '/CONFIG_TARGET_PROFILE/d' .config
+            sed -i '/CONFIG_TARGET_ARCH_PACKAGES/d' .config
 
-          echo "🔧 Menetapkan target Rockchip ARMv7..."
-          echo "CONFIG_TARGET_rockchip=y" >> .config
-          echo "CONFIG_TARGET_rockchip_armv7=y" >> .config
-          echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
-          echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
-          echo "CONFIG_LINUX_6_6=y" >> .config
+            echo "🔧 Menetapkan target Rockchip ARMv7..."
+            echo "CONFIG_TARGET_rockchip=y" >> .config
+            echo "CONFIG_TARGET_rockchip_armv7=y" >> .config
+            echo "CONFIG_TARGET_rockchip_armv7_DEVICE_${TARGET_PROFILE}=y" >> .config
+            echo "CONFIG_KERNEL_PATCHVER=\"6.6\"" >> .config
+            echo "CONFIG_LINUX_6_6=y" >> .config
+          fi
 
           make defconfig
 
@@ -90,6 +133,11 @@ jobs:
           echo "🛑 Build dibatalkan karena .config salah target."
           exit 1
 
+      # ===== DEBUG JIKA GAGAL =====
+      - name: Setup tmate debug session (On Failure)
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+
       - name: Build Firmware
         if: success()
         working-directory: ./openwrt
@@ -104,24 +152,10 @@ jobs:
           name: Rockchip_ARMv7_Firmware
           path: ./openwrt/bin/targets/rockchip/armv7/*.img
 
-      # ===== DEBUG SESSION =====
-      - name: Setup tmate debug session
-        id: tmate
-        if: ${{ failure() || github.event_name == 'workflow_dispatch' }}
-        uses: mxschmitt/action-tmate@v3
+      # ===== SIMPAN CONFIG HASIL MENUCONFIG =====
+      - name: Save Custom Config
+        if: ${{ github.event_name == 'workflow_dispatch' && success() }}
+        uses: actions/upload-artifact@v4
         with:
-          limit-access-to-actor: true
-          timeout: 30  # Timeout 30 menit
-
-      # ===== NOTIFIKASI JIKA GAGAL DI PULL REQUEST =====
-      - name: Notify failure in PR
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🚨 Build failed! \n\nAnda dapat melakukan debug via SSH dengan perintah berikut: \n```\n${{ steps.tmate.outputs.ssh }}\n```'
-            })
+          name: custom-config
+          path: ./openwrt/.config
