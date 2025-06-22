@@ -11,13 +11,17 @@ KERNEL_PATCHVER:=6.12
 KERNEL_TESTING_PATCHVER:=6.6
 
 define Target/Description
-	Build firmware image for Rockchip SoC devices.
+    Build firmware image for Rockchip SoC devices.
 endef
 
 include $(INCLUDE_DIR)/target.mk
 
+# Pastikan include device list untuk subtarget
+include $(SUBTARGET_DIR)/image/armv7.mk
+include $(SUBTARGET_DIR)/image/armv8.mk
+
 DEFAULT_PACKAGES += uboot-envtools partx-utils e2fsprogs mkf2fs kmod-button-hotplug \
-		    automount autocore-arm e2fsprogs ethtool haveged htop usb-modeswitch
+    automount autocore-arm e2fsprogs ethtool haveged htop usb-modeswitch
 
 KERNELNAME:=Image dtbs
 
